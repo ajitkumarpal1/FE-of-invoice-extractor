@@ -4,10 +4,18 @@ import axios from 'axios';
 export default function Uplode() {
     const [file, setFile] = useState(null);
     const [invoiceData, setInvoiceData] = useState({});
+    const [error, setError] = useState('');
 
     // Handle file selection
     const handleFileChange = (event) => {
-        setFile(event.target.files[0]);
+        const selectedFile = event.target.files[0];
+        if (selectedFile && selectedFile.type !== 'application/pdf') {
+            setError('Please select a PDF file.');
+            setFile(null);
+        } else {
+            setError('');
+            setFile(selectedFile);
+        }
     };
 
     // Handle file upload
@@ -45,10 +53,17 @@ export default function Uplode() {
             <div className="bg-white p-6 rounded shadow-md w-96">
                 <h2 className="text-lg font-bold mb-4">Invoice Extractor</h2>
                 <div className="flex-col flex">
-                    <input type="file" className="mb-4" onChange={handleFileChange} />
+                    <input 
+                        type="file" 
+                        className="mb-4" 
+                        accept=".pdf" 
+                        onChange={handleFileChange} 
+                    />
+                    {error && <p className="text-red-500">{error}</p>}
                     <button
                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 active:bg-blue-900 active:scale-95"
                         onClick={handleUpload}
+                        disabled={!file}
                     >
                         Upload
                     </button>
