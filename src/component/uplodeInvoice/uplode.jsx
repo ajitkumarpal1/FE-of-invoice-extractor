@@ -5,6 +5,7 @@ export default function Uplode() {
     const [file, setFile] = useState(null);
     const [invoiceData, setInvoiceData] = useState({});
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     // Handle file selection
     const handleFileChange = (event) => {
@@ -25,6 +26,7 @@ export default function Uplode() {
             return;
         }
 
+        setIsLoading(true); // Start loading
         const formData = new FormData();
         formData.append('pdf', file);
 
@@ -37,56 +39,74 @@ export default function Uplode() {
             setInvoiceData(response.data);
         } catch (error) {
             console.error("Error uploading file:", error);
+        } finally {
+            setIsLoading(false); // Stop loading
         }
     };
 
     // Use useEffect to handle side effects based on invoiceData changes
     useEffect(() => {
         if (Object.keys(invoiceData).length > 0) {
-            // Perform any additional side effects or actions when invoiceData changes
             console.log("Invoice data updated:", invoiceData);
         }
     }, [invoiceData]); // Runs when invoiceData changes
 
     return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-            <div className="bg-white p-6 rounded shadow-md w-96">
+            <div className="bg-white p-6 rounded shadow-md min-w-96 max-w-5xl">
                 <h2 className="text-lg font-bold mb-4">Invoice Extractor</h2>
                 <div className="flex-col flex">
-                    <input 
-                        type="file" 
-                        className="mb-4" 
-                        accept=".pdf" 
-                        onChange={handleFileChange} 
+                    <input
+                        type="file"
+                        className="mb-4"
+                        accept=".pdf"
+                        onChange={handleFileChange}
+                        disabled={isLoading}
                     />
                     {error && <p className="text-red-500">{error}</p>}
                     <button
-                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 active:bg-blue-900 active:scale-95"
+                        className={`bg-blue-500 text-white px-4 py-2 rounded ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 active:bg-blue-900 active:scale-95'}`}
                         onClick={handleUpload}
-                        disabled={!file}
+                        disabled={!file || isLoading}
                     >
-                        Upload
+                        {isLoading ? 'Uploading...' : 'Upload'}
                     </button>
                 </div>
 
                 <div id="result" className="mt-6">
                     {Object.keys(invoiceData).length > 0 ? (
-                        <div className="p-4 bg-gray-50 border border-gray-200 rounded text-left">
-                            <h3 className="text-lg font-semibold mb-2">Invoice Details</h3>
-                            <p><strong>Customer Name:</strong> {invoiceData.customerName}</p>
-                            <hr />
-                            <p><strong>Contact No:</strong> {invoiceData.customerContactNo}</p>
-                            <hr />
-                            <p><strong>Address:</strong> {invoiceData.customerAddress}</p>
-                            <hr />
-                            <p><strong>Products:</strong> {invoiceData.productsName?.join(', ')}</p>
-                            <hr />
-                            <p><strong>Total Amount:</strong> ₹ {invoiceData.totalAmount}</p>
+                        <div className="p-6 bg-white shadow-md rounded-lg text-left">
+                            <h3 className="text-xl font-bold text-gray-800 mb-4">Invoice Details</h3>
+                            <div className="grid grid-cols-2 gap-y-2 gap-x-4">
+                                <p className="font-semibold text-gray-700">Customer Name:</p>
+                                <p className="text-gray-600">{invoiceData.customerName}</p>
+                                <hr className="col-span-2" />
+
+                                <p className="font-semibold text-gray-700">Contact No:</p>
+                                <p className="text-gray-600">{invoiceData.customerContactNo}</p>
+                                <hr className="col-span-2" />
+
+                                <p className="font-semibold text-gray-700">Address:</p>
+                                <p className="text-gray-600">{invoiceData.customerAddress}</p>
+                                <hr className="col-span-2" />
+
+                                <p className="font-semibold text-gray-700">Email:</p>
+                                <p className="text-gray-600">{invoiceData.customerEmail}</p>
+                                <hr className="col-span-2" />
+
+                                <p className="font-semibold text-gray-700">Products:</p>
+                                <p className="text-gray-600">{invoiceData.productsName?.join(', ')}</p>
+                                <hr className="col-span-2" />
+
+                                <p className="font-semibold text-gray-700">Total Amount:</p>
+                                <p className="text-gray-600">₹ {invoiceData.totalAmount}</p>
+                            </div>
                         </div>
                     ) : (
-                        <p>No invoice data available</p>
+                        <p className="text-gray-500 text-center">No invoice data available</p>
                     )}
                 </div>
+
             </div>
         </div>
     );
